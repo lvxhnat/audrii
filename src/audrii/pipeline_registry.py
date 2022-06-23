@@ -1,13 +1,18 @@
 """Project pipelines."""
 from typing import Dict
 
-from kedro.pipeline import Pipeline, pipeline
+from kedro.pipeline import Pipeline
+from audrii.pipelines import metrics
 
 
 def register_pipelines() -> Dict[str, Pipeline]:
     """Register the project's pipelines.
-
     Returns:
         A mapping from a pipeline name to a ``Pipeline`` object.
     """
-    return {"__default__": pipeline([])}
+    _pipeline = metrics.create_pipeline()
+
+    return {
+        "__default__": _pipeline,
+        "dp": _pipeline,
+    }
