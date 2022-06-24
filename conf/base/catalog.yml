@@ -2,3 +2,7 @@
 #
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
+
+raw_russell_indexes: 
+  type: pandas.ParquetDataSet
+  filepath: data/01_raw/russellindex.parquet  

@@ -1,6 +1,9 @@
 import os
+import uuid
 import time
 import itertools
+import numpy as np
+import pandas as pd
 from itertools import cycle
 from functools import partial
 from typing import Any, Dict, List, Callable
@@ -14,35 +17,59 @@ class RateBypassWorker:
 
     def __init__(
         self,
+        worker_id: int,
         callback: Callable,
         api_keys: List[str],
         sleep_time: int = 1,
         rate_limit: float = None,
+        save_results: bool = False,
+        save_result_fn: Callable = None,
+        save_result_path: str = None,
     ):
         self.api_keys = cycle(api_keys)
         self.api_key = next(self.api_keys)
+        self.num_keys = len(api_keys)
+        self.worker_id = worker_id
 
         self.sleep_time = sleep_time
         self.rate_limit = rate_limit
         self.callback_function = callback
 
+        if save_results:
+            assert save_result_fn is not None and save_result_path is not None
+
+        self.save_results = save_results
+        self.save_results_fn = save_result_fn
+        self.save_results_path = save_result_path
+
+        self.rotations = 0
+        self.successful_extractions = 0
+
     def execute(self, constant_params: Dict[str, Any], iterable_params: List[Dict[str, Any]]):
         # Assert that our iterable parameters are all the same length
-
         return [self.scrape(**constant_params, **item) for item in iterable_params]
 
     def scrape(self, **kwargs):
 
         try:
-            return self.callback_function(self.api_key, **kwargs)
+            data = self.callback_function(self.api_key, **kwargs)
+            self.successful_extractions += 1
+            logging.info(
+                f"Worker {self.worker_id}: Extracted {str(self.successful_extractions)} items. On API Key {self.api_key}")
+            if self.save_results and data is not None:
+                self.save_results_fn(
+                    data, self.save_results_path.strip("/") + str(uuid.uuid4()))
+            else:
+                return data
 
         except Exception as e:
-            logging.error(
-                f"Rate limit reached on API Key. Rotating to the next available key.")
+            self.rotations += 1
             self.api_key = next(self.api_keys)
+            if self.rotations % self.num_keys == 0:
+                logging.error(
+                    f"Worker {self.worker_id}: {str(e)}. Sleep for {self.sleep_time}s")
+                time.sleep(self.sleep_time)
             self.scrape(**kwargs)
-
-            time.sleep(self.sleep_time)
 
 
 class DataProducer:
@@ -52,21 +79,36 @@ class DataProducer:
         callback: Callable,
         api_keys: List[str],
         rate_limit: str = "5/min",
+        save_results: bool = False,
+        save_result_fn: Callable = None,
+        save_result_path: str = None,
     ):
         self.api_keys = api_keys
         self.callback_function = callback
 
-        if rate_limit.split("/")[1] == "min":
-            self.sleep_time = int(1/int(rate_limit.split("/")[0]))
+        self.to_save_results = save_results
+        self.save_results_fn = save_result_fn
+        self.save_results_path = save_result_path
 
-        self.num_workers = min(
-            max(os.cpu_count() + 4, int(len(self.api_keys)/5)), len(self.api_keys))
+        if rate_limit.split("/")[1] == "min":
+            self.sleep_time = 50
+
+    def save_results(self, dataframe: pd.DataFrame, path: str):
+        try:
+            dataframe.to_parquet(path)
+        except Exception as e:
+            logging.error(e)
 
     @staticmethod
     def split_array_for_workers(array: List[str], num: int):
         k, m = divmod(len(array), num)
         d = (array[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
         return d
+
+    def calculate_number_of_workers(self, param_length: int):
+        # Max 30 workers or number of api keys available. Minimum 1 worker
+        min_api_keys_per_worker = 5
+        return min(min(30, len(self.api_keys)), max(np.ceil(param_length/min_api_keys_per_worker).astype(int), 1))
 
     def execute(
         self,
@@ -75,7 +117,7 @@ class DataProducer:
     ):
         clients = []
         length = len(list(iterables_params.values())[0])
-        num_workers = min(self.num_workers, length)
+        num_workers = self.calculate_number_of_workers(length)
         logging.info(f"Generating {str(num_workers)} workers...")
 
         # Reformat the parameters to feed into the functions
@@ -98,13 +140,20 @@ class DataProducer:
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
 
             futures = []
+            worker_id = 0
 
             for worker_api_key_list, worker_parameter_list in zip(worker_api_keys, worker_parameters):
 
+                worker_id += 1
+
                 fn = RateBypassWorker(
+                    worker_id=worker_id,
                     callback=self.callback_function,
                     api_keys=worker_api_key_list,
                     sleep_time=self.sleep_time,
+                    save_results=self.to_save_results,
+                    save_result_fn=self.save_results_fn,
+                    save_result_path=self.save_results_path,
                 )
                 worker_job = partial(fn.execute, constant_params=constants_params)
 
@@ -114,6 +163,9 @@ class DataProducer:
                 )
 
                 futures.append(job)
+
+                logging.info(
+                    f"Worker {worker_id} initialised with {str(len(worker_api_key_list))} keys.")
 
             for client_num, future in enumerate(as_completed(futures), start=1):
                 logging.info(f"Client number {client_num} initialized.")
@@ -131,4 +183,3 @@ if __name__ == '__main__':
         iterables_params={
             "ticker": ["GPS", "AAPL"],
         })
-    print(data)

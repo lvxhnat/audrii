@@ -1,22 +1,18 @@
-import csv
+import os
 import requests
-import numpy as np
 import pandas as pd
-
 from dotenv import load_dotenv
-from datetime import datetime
 from typing import Union, List
+from datetime import datetime
 
-from audrii.utilities.scraper.exceptions.main import RateLimitException
 from audrii.utilities.scraper.interfaces.ticker.alpha_vantage import AssetHistoricalData
-
-env_loaded = load_dotenv()
+load_dotenv()
 
 
 def get_historical_data(
         api_key: str,
         ticker: str,
-        resolution: str = "5min",
+        resolution: int = 5,
         from_date: str = "2022-02-20",
         data_format: str = "json",
         header=None,
@@ -46,60 +42,21 @@ def get_historical_data(
 
     """
 
-    def get_date_range(from_date: str):
-        days = max(13 * 28, (datetime.today() -
-                             datetime.strptime(from_date, "%Y-%m-%d")).days)
-        months = np.ceil(days / 28).astype(int)
-        return "year" + str(months//12) + "month" + str(months % 12)
+    to_date = datetime.today().strftime("%Y-%m-%d")
 
-    resolution = resolution.strip(" ").lower()
-
-    if "-" in from_date:
-        date_range = get_date_range(from_date)
-    else:
-        date_range = from_date
-
-    base_endpoint = "https://www.alphavantage.co/query?"
-    endpoint = f"function=TIME_SERIES_INTRADAY_EXTENDED&symbol={ticker}&interval={resolution}&slice={date_range}&apikey={api_key}"
-
-    url = base_endpoint + endpoint
+    url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{resolution}/minute/{from_date}/{to_date}?adjusted=true&sort=asc&limit=50000&apiKey={api_key}"
 
     with requests.Session() as s:
         if proxy and header:
-            download = s.get(url, proxies=proxy, headers=header)
+            download = s.get(url, proxies=proxy, headers=header).json()
         else:
-            download = s.get(url)
+            download = s.get(url).json()
 
-        decoded_content = download.content.decode('utf-8')
-        print(decoded_content[-1000:])
-        cr = csv.reader(decoded_content.splitlines(), delimiter=',')
-        my_list = list(cr)
-
-    df = pd.DataFrame(my_list[1:], columns=my_list[0]).rename(
-        columns={"time": "date"})
-    df['symbol'] = ticker
-
-    assert df.shape[0] > 0, "Empty dataframe"
+    df = pd.DataFrame(download['results'])
+    df['symbol'] = download['ticker']
 
     if data_format == "json":
         return eval(df.to_json(orient="table", index=False))['data']
 
     elif data_format == "csv":
-        df = test_for_rate_limit(df)
         return df
-
-
-def test_for_rate_limit(df):
-
-    rate_limit_message = None
-
-    try:
-        rate_limit_message = df.loc[0].values[0]
-    except:
-        pass
-
-    if rate_limit_message is not None:
-        if "Thank you" in rate_limit_message:
-            raise RateLimitException
-
-    return df

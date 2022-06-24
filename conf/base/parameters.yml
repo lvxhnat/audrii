@@ -1,0 +1,27 @@
+data_ingestion: 
+  tickers: 
+    - GPS
+    - IAU
+    - M
+    - NFLX
+  resolution: 1D
+  from_date: 2021-06-20
+  simulated_tickers:
+    GPS: 
+      - {_id: 1, action: Long, units: 20, date: 2022-02-03, price: 14.57, simulatedFee: 0}
+      - {_id: 2, action: Short, units: 20, date: 2022-04-04, price: 14.21, simulatedFee: 0}
+      - {_id: 3, action: Long, units: 25, date: 2022-06-13, price: 9.03, simulatedFee: 0.2}
+    IAU: 
+      - {_id: 1, action: Long, units: 10, date: 2022-03-02, price: 36.61, simulatedFee: 0}
+      - {_id: 2, action: Short, units: 10, date: 2022-03-08, price: 38.98, simulatedFee: 0}
+      - {_id: 3, action: Long, units: 5, date: 2022-03-15, price: 36.45, simulatedFee: 0.1}
+      - {_id: 4, action: Long, units: 5, date: 2022-04-13, price: 37.62, simulatedFee: 0.23}
+    M: 
+      - {_id: 1, action: Long, units: 55, date: 2022-05-24, price: 17.61, simulatedFee: 0}
+    NFLX: 
+      - {_id: 1, action: Long, units: 2, date: 2022-01-19, price: 515.86, simulatedFee: 0}
+    STNG: 
+      - {_id: 1, action: Long, units: 50, date: 2022-04-24, price: 20.60, simulatedFee: 0.26}
+      - {_id: 2, action: Long, units: 20, date: 2022-05-13, price: 28.35, simulatedFee: 0.29}
+      - {_id: 3, action: Short, units: 45, date: 2022-05-24, price: 30.46, simulatedFee: 0.31}
+      - {_id: 4, action: Long, units: 20, date: 2022-06-02, price: 35.19, simulatedFee: 0.35}

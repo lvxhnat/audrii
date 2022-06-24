@@ -2,7 +2,7 @@
 from typing import Dict
 
 from kedro.pipeline import Pipeline
-from audrii.pipelines import metrics
+from audrii.pipelines import ingestion
 
 
 def register_pipelines() -> Dict[str, Pipeline]:
@@ -10,7 +10,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
     Returns:
         A mapping from a pipeline name to a ``Pipeline`` object.
     """
-    _pipeline = metrics.create_pipeline()
+    _pipeline = ingestion.create_pipeline()
 
     return {
         "__default__": _pipeline,

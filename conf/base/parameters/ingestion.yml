@@ -1,0 +1,9 @@
+# This is a boilerplate parameters config generated for pipeline 'ingestion'
+# using Kedro 0.18.1.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://kedro.readthedocs.io/en/0.18.1/kedro_project_setup/configuration.html#parameters
+ingestion_parameters:
+  resolution: 5
+  from_date: "2021-01-01"
+  data_format: csv
