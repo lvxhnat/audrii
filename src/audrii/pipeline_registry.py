@@ -14,5 +14,5 @@ def register_pipelines() -> Dict[str, Pipeline]:
 
     return {
         "__default__": _pipeline,
-        "dp": _pipeline,
+        "ingestion": _pipeline,
     }

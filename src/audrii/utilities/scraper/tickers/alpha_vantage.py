@@ -71,7 +71,7 @@ def get_historical_data(
             download = s.get(url)
 
         decoded_content = download.content.decode('utf-8')
-        print(decoded_content[-1000:])
+
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
 

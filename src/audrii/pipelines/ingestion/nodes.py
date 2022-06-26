@@ -2,30 +2,40 @@ import os
 import numpy as np
 import pandas as pd
 from typing import List
+from pathlib import Path
+import dask.dataframe as dd
 
 from audrii.utilities.scraper.api_wrapper import DataProducer
 from audrii.utilities.scraper.tickers.polygon_io import get_historical_data
+from audrii.utilities.main import get_api_keys
+from audrii.utilities.logger import logging
 
 
 def get_russell_3000_tickers(df: pd.DataFrame) -> List[str]:
-    return df.Ticker.to_list()[:15]
+    return df.Ticker.to_list()
 
 
-def ingest_russell_3000(tickers: List[str], params):
+def ingest_russell_3000(tickers: List[str], skip: bool, params):
 
-    api_keys = [os.environ[f'POLYGONIO_API_KEY_{i}'] for i in range(2)]
-    producer = DataProducer(get_historical_data, api_keys)
+    if not skip:
 
-    ticker_chunks = DataProducer.split_array_for_workers(
-        tickers, np.ceil(len(tickers)/30).astype(int))
+        api_keys = get_api_keys('POLYGONIO_API_KEY')
+        producer = DataProducer(get_historical_data, api_keys)
 
-    for chunk_index, ticker_chunk in enumerate(ticker_chunks):
-        data = producer.execute(
-            constants_params=params,
-            iterables_params={
-                "ticker": ticker_chunk,
-            })
-        pd.concat(data).to_parquet(
-            f"../../../data/01_raw/{chunk_index}_chunk.parquet", index=False)
+        try:
+            data = producer.execute(
+                constants_params=params,
+                iterables_params={
+                    "ticker": tickers,
+                })
+            df = dd.concat([d for d in data if d is not None])
 
-    return data
+        except Exception as e:
+            logging.error(f"Error encountered while extracting data. {str(e)}")
+            return df
+
+        return df
+
+    else:
+
+        return pd.DataFrame()

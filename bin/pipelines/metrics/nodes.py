@@ -8,6 +8,7 @@ import pandas as pd
 from typing import List, Dict
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from audrii.pipelines.metrics.data_ingestion import request_authentication_token, load_historical_stock_data
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)

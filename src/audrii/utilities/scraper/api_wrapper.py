@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from audrii.utilities.logger import logging
-from audrii.utilities.scraper.tickers.alpha_vantage import get_historical_data
 
 
 class RateBypassWorker:
@@ -65,6 +64,7 @@ class RateBypassWorker:
         except Exception as e:
             self.rotations += 1
             self.api_key = next(self.api_keys)
+            # If all the keys have been fully rotated in one revol
             if self.rotations % self.num_keys == 0:
                 logging.error(
                     f"Worker {self.worker_id}: {str(e)}. Sleep for {self.sleep_time}s")
@@ -108,7 +108,7 @@ class DataProducer:
     def calculate_number_of_workers(self, param_length: int):
         # Max 30 workers or number of api keys available. Minimum 1 worker
         min_api_keys_per_worker = 5
-        return min(min(30, len(self.api_keys)), max(np.ceil(param_length/min_api_keys_per_worker).astype(int), 1))
+        return min(12, np.ceil(param_length/min_api_keys_per_worker).astype(int))
 
     def execute(
         self,
@@ -155,7 +155,8 @@ class DataProducer:
                     save_result_fn=self.save_results_fn,
                     save_result_path=self.save_results_path,
                 )
-                worker_job = partial(fn.execute, constant_params=constants_params)
+                worker_job = partial(
+                    fn.execute, constant_params=constants_params)
 
                 job = executor.submit(
                     worker_job,
@@ -173,13 +174,3 @@ class DataProducer:
                 clients.append(client)
 
         return list(itertools.chain.from_iterable(clients))
-
-
-if __name__ == '__main__':
-    api_keys = [os.environ[f'ALPHA_VANTAGE_API_KEY_{i}'] for i in range(30)]
-    producer = DataProducer(get_historical_data, api_keys)
-    data = producer.execute(
-        constants_params={},
-        iterables_params={
-            "ticker": ["GPS", "AAPL"],
-        })

@@ -15,7 +15,7 @@ ingestion_parameters = node(
 )
 ingest_data = node(
     func=ingest_russell_3000,
-    inputs=["tickers", "params:ingestion_parameters"],
+    inputs=["tickers", "params:skip_ingestion", "params:ingestion_parameters"],
     outputs="raw_ticker_data",
     name="extract_ingestion_data"
 )

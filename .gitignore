@@ -8,7 +8,7 @@ conf/local/**
 
 # ignore potentially sensitive credentials files
 conf/**/*credentials*
-
+*connect_cloud.py
 # ignore everything in the following folders
 data/**
 logs/**

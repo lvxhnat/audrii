@@ -3,6 +3,8 @@
 #
 # Documentation for this file format can be found in "Parameters"
 # Link: https://kedro.readthedocs.io/en/0.18.1/kedro_project_setup/configuration.html#parameters
+skip_ingestion: false
+
 ingestion_parameters:
   resolution: 5
   from_date: "2021-01-01"
