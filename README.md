@@ -1,11 +1,16 @@
-# audrii
+# Audrii
 
 ## Overview
 
-This is your new Kedro project, which was generated using `Kedro 0.18.1`.
+Audrii is a pipeline for extracting market data and insights for Tau. You can read more about this project in the documentation flow.
 
-Take a look at the [Kedro documentation](https://kedro.readthedocs.io) to get started.
+## Quick Start 
 
+To run Audrii as a prefect pipeline
+
+```
+python3 -m register_prefect_flow --pipeline "ingestion"
+```
 ## Rules and guidelines
 
 In order to get the best out of the template:
@@ -23,14 +28,6 @@ To install them, run:
 
 ```
 pip install -r src/requirements.txt
-```
-
-## How to run your Kedro pipeline
-
-You can run your Kedro project with:
-
-```
-kedro run
 ```
 
 ## How to test your Kedro project
