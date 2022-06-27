@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from itertools import cycle
 from functools import partial
-from typing import Any, Dict, List, Callable
+from typing import Any, Dict, List, Callable, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from audrii.utilities.logger import logging
@@ -56,9 +56,18 @@ class RateBypassWorker:
         self.rotations = 0
         self.successful_extractions = 0
 
-    def execute(self, constant_params: Dict[str, Any], iterable_params: List[Dict[str, Any]]):
+    def execute(self, constant_params: Union(Dict[str, Any], None), iterable_params: List[Dict[str, Any]]):
         # Assert that our iterable parameters are all the same length
-        return [self.scrape(**constant_params, **item) for item in iterable_params]
+        if constant_params is None or not isinstance(constant_params, dict):
+            raise ValueError(
+                f"Only constant_params of type Dict[str, Any] is allowed. You entered object of type {type(constant_params)}.")
+        if not isinstance(iterable_params, list):
+            raise ValueError(
+                f"Only iterable_params of type List[Dict[str, Any]] is allowed. You entered object of type {type(iterable_params)}.")
+        if constant_params is not None:
+            return [self.scrape(**constant_params, **item) for item in iterable_params]
+        else:
+            return [self.scrape(**item) for item in iterable_params]
 
     def scrape(self, **kwargs):
 
