@@ -60,6 +60,21 @@ class CloudUtility:
 
         return pd.concat(df)
 
+    def delete_file_from_gcs(
+        self,
+        prefix: str,
+    ):
+        client = storage.Client()
+        bucket = client.get_bucket(self.bucket_name)
+        # list all objects in the directory
+        blobs = bucket.list_blobs(prefix=prefix)
+
+        deleted_files = []
+        for blob in blobs:
+            blob.delete()
+            deleted_files.append(blob.name)
+        return deleted_files
+
     def write_to_cloud_storage(
             self,
             dataframe: pd.DataFrame,

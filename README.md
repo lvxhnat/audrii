@@ -114,6 +114,6 @@ To automatically strip out all output cell contents before committing to `git`, 
 
 > *Note:* Your output cells will be retained locally.
 
-## Package your Kedro project
-
-[Further information about building project documentation and packaging your project](https://kedro.readthedocs.io/en/stable/tutorial/package_a_project.html)
+## Schedules
+At 30 minutes past the hour, at 09:00 PM and 12:00 AM through 06:59 AM, Monday through Friday (+08)
+At 09:00 AM, only on Saturday (+08)

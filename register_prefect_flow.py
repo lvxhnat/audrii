@@ -69,8 +69,6 @@ def build_and_register_flow(pipeline_name, env):
 
         flow.set_dependencies(task=node_task, upstream_tasks=parent_tasks)
 
-    print(flow)
-
     client = Client()
     try:
         client.create_project(project_name=metadata.project_name)

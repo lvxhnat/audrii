@@ -59,7 +59,10 @@ def get_historical_data(
     df = pd.DataFrame(download['results'])
     df['symbol'] = download['ticker']
 
-    save_path = f"""tickers/historical_ticks_{resolution}/{ticker}_{from_date.replace("/","")}_{datetime.today().strftime("%Y%m%d%H%M")}.parquet"""
+    file_prefix = f"""tickers/historical_ticks_{resolution}/{ticker}_"""
+    save_path = f"""{file_prefix}{from_date.replace("-","")}_{datetime.today().strftime("%Y%m%d%H%M")}.parquet"""
+
+    cloud_utils.delete_file_from_gcs(file_prefix)  # Remove to prepare for replacement
     cloud_utils.write_to_cloud_storage(df, save_path)
 
     if data_format == "json":

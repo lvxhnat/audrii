@@ -19,7 +19,7 @@ class RateBypassWorker:
         worker_id: int,
         callback: Callable,
         api_keys: List[str],
-        sleep_time: int = 1,
+        sleep_time: int = 60,
         rate_limit: float = None,
         save_results: bool = False,
         save_result_fn: Callable = None,
@@ -30,7 +30,9 @@ class RateBypassWorker:
         self.num_keys = len(api_keys)
         self.worker_id = worker_id
 
-        self.sleep_time = sleep_time
+        self.sleep_time = sleep_time  # The time it takes before the API rate limit is hit
+        self.timeout = time.time()
+
         self.rate_limit = rate_limit
         self.callback_function = callback
 
@@ -66,9 +68,11 @@ class RateBypassWorker:
             self.api_key = next(self.api_keys)
             # If all the keys have been fully rotated in one revol
             if self.rotations % self.num_keys == 0:
+                time_to_sleep = self.timeout - time.time()
+                self.timeout = time.time()
                 logging.error(
-                    f"Worker {self.worker_id}: {str(e)}. Sleep for {self.sleep_time}s")
-                time.sleep(self.sleep_time)
+                    f"Worker {self.worker_id}: {str(e)}. Sleep for {time_to_sleep}s")
+                time.sleep(time_to_sleep)
             self.scrape(**kwargs)
 
 
@@ -91,7 +95,7 @@ class DataProducer:
         self.save_results_path = save_result_path
 
         if rate_limit.split("/")[1] == "min":
-            self.sleep_time = 50
+            self.sleep_time = rate_limit.split("/")[1] * 60
 
     def save_results(self, dataframe: pd.DataFrame, path: str):
         try:
