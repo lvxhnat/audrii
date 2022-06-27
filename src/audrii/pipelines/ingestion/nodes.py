@@ -29,12 +29,11 @@ def ingest_russell_3000(tickers: List[str], skip: bool, params):
                     "ticker": tickers,
                 })
             df = dd.concat([d for d in data if d is not None])
+            return df
 
         except Exception as e:
             logging.error(f"Error encountered while extracting data. {str(e)}")
             return df
-
-        return df
 
     else:
 

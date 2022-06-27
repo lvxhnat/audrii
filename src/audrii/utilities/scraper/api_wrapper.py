@@ -20,11 +20,22 @@ class RateBypassWorker:
         callback: Callable,
         api_keys: List[str],
         sleep_time: int = 60,
-        rate_limit: float = None,
         save_results: bool = False,
         save_result_fn: Callable = None,
         save_result_path: str = None,
     ):
+        """ Create a single thread worker that contains independently rotating API Keys and parameter values.
+
+        Args:
+            worker_id: The id tag for the worker. Pass index when iterating over to create the workers.
+            callback: The function we will like to create a worker for.
+            api_keys: The list of API Keys that the worker will iterate over when rate limit is hit.
+            sleep_time: The time a worker should sleep once the rate limit is hit.
+            save_results: Whether we want to save the output result for each dataframe.
+            save_result_fn [Conditional on save_results]: The function we use for saving our dataframe. It takes in Params(dataframe, save_path)
+            save_result_path [Conditional on save_results]: The base path we use on top for saving our data to.
+
+        """
         self.api_keys = cycle(api_keys)
         self.api_key = next(self.api_keys)
         self.num_keys = len(api_keys)
@@ -33,7 +44,6 @@ class RateBypassWorker:
         self.sleep_time = sleep_time  # The time it takes before the API rate limit is hit
         self.timeout = time.time()
 
-        self.rate_limit = rate_limit
         self.callback_function = callback
 
         if save_results:
@@ -68,7 +78,7 @@ class RateBypassWorker:
             self.api_key = next(self.api_keys)
             # If all the keys have been fully rotated in one revol
             if self.rotations % self.num_keys == 0:
-                time_to_sleep = self.timeout - time.time()
+                time_to_sleep = time.time() - self.timeout
                 self.timeout = time.time()
                 logging.error(
                     f"Worker {self.worker_id}: {str(e)}. Sleep for {time_to_sleep}s")
