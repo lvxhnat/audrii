@@ -26,14 +26,15 @@ class RateBypassWorker:
     ):
         """ Create a single thread worker that contains independently rotating API Keys and parameter values.
 
-        Args:
-            worker_id: The id tag for the worker. Pass index when iterating over to create the workers.
-            callback: The function we will like to create a worker for.
-            api_keys: The list of API Keys that the worker will iterate over when rate limit is hit.
-            sleep_time: The time a worker should sleep once the rate limit is hit.
-            save_results: Whether we want to save the output result for each dataframe.
-            save_result_fn [Conditional on save_results]: The function we use for saving our dataframe. It takes in Params(dataframe, save_path)
-            save_result_path [Conditional on save_results]: The base path we use on top for saving our data to.
+        Parameters
+        ---------------
+        worker_id: The id tag for the worker. Pass index when iterating over to create the workers.
+        callback: The function we will like to create a worker for.
+        api_keys: The list of API Keys that the worker will iterate over when rate limit is hit.
+        sleep_time: The time a worker should sleep once the rate limit is hit.
+        save_results: Whether we want to save the output result for each dataframe.
+        save_result_fn [Conditional on save_results]: The function we use for saving our dataframe. It takes in Params(dataframe, save_path)
+        save_result_path [Conditional on save_results]: The base path we use on top for saving our data to.
 
         """
         self.api_keys = cycle(api_keys)
@@ -56,7 +57,7 @@ class RateBypassWorker:
         self.rotations = 0
         self.successful_extractions = 0
 
-    def execute(self, constant_params: Union(Dict[str, Any], None), iterable_params: List[Dict[str, Any]]):
+    def execute(self, constant_params: Union[Dict[str, Any], None], iterable_params: List[Dict[str, Any]]):
         # Assert that our iterable parameters are all the same length
         if constant_params is None or not isinstance(constant_params, dict):
             raise ValueError(

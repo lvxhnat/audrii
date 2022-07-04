@@ -5,12 +5,9 @@ from dotenv import load_dotenv
 from typing import Union, List
 from datetime import datetime
 
-from audrii.utilities.storage.google_cloud import CloudUtility
 from audrii.utilities.scraper.interfaces.ticker.alpha_vantage import AssetHistoricalData
 
 load_dotenv()
-
-cloud_utils = CloudUtility()
 
 
 def get_historical_data(
@@ -62,8 +59,8 @@ def get_historical_data(
     file_prefix = f"""tickers/historical_ticks_{resolution}/{ticker}_"""
     save_path = f"""{file_prefix}{from_date.replace("-","")}_{datetime.today().strftime("%Y%m%d%H%M")}.parquet"""
 
-    cloud_utils.delete_file_from_gcs(file_prefix)  # Remove to prepare for replacement
-    cloud_utils.write_to_cloud_storage(df, save_path)
+    # cloud_utils.delete_file_from_gcs(file_prefix)  # Remove to prepare for replacement
+    # cloud_utils.write_to_cloud_storage(df, save_path)
 
     if data_format == "json":
         return eval(df.to_json(orient="table", index=False))['data']
