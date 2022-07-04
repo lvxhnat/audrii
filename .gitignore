@@ -6,6 +6,9 @@ conf/local/**
 !conf/local/.gitkeep
 .telemetry
 
+*/Untitled.ipynb
+
+
 # ignore potentially sensitive credentials files
 conf/**/*credentials*
 *connect_cloud.py

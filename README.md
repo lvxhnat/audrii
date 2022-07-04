@@ -6,8 +6,7 @@ Audrii is a pipeline for extracting market data and insights for Tau. You can re
 
 ## Quick Start 
 
-To run Audrii as a prefect pipeline
-
+To run Audrii as a prefect pipeline, make sure Docker is running, then do:
 ```
 python3 -m register_prefect_flow --pipeline "ingestion"
 ```
