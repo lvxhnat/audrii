@@ -1,13 +1,30 @@
-import os
+import csv
 import requests
+import numpy as np
 import pandas as pd
+
 from dotenv import load_dotenv
-from typing import Union, List
 from datetime import datetime
+from typing import Union, List
+from pydantic import BaseModel
 
-from audrii.utilities.scraper.interfaces.ticker.alpha_vantage import AssetHistoricalData
+env_loaded = load_dotenv()
 
-load_dotenv()
+
+class RateLimitException(Exception):
+    def __str__(self):
+        return "API call frequency limit hit."
+
+
+class AssetHistoricalData(BaseModel):
+    # Data Returned directly from the scrapers
+    close: float
+    high: float
+    open: float
+    low: float
+    date: int
+    volume: int
+    symbol: str
 
 
 def get_historical_data(
@@ -55,12 +72,6 @@ def get_historical_data(
 
     df = pd.DataFrame(download['results'])
     df['symbol'] = download['ticker']
-
-    file_prefix = f"""tickers/historical_ticks_{resolution}/{ticker}_"""
-    save_path = f"""{file_prefix}{from_date.replace("-","")}_{datetime.today().strftime("%Y%m%d%H%M")}.parquet"""
-
-    # cloud_utils.delete_file_from_gcs(file_prefix)  # Remove to prepare for replacement
-    # cloud_utils.write_to_cloud_storage(df, save_path)
 
     if data_format == "json":
         return eval(df.to_json(orient="table", index=False))['data']

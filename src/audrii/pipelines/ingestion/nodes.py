@@ -1,14 +1,11 @@
-import os
-import numpy as np
 import pandas as pd
 from typing import List
-from pathlib import Path
 import dask.dataframe as dd
 
-from audrii.utilities.scraper.api_wrapper import DataProducer
-from audrii.utilities.scraper.tickers.polygon_io import get_historical_data
-from audrii.utilities.main import get_api_keys
 from audrii.utilities.logger import logging
+from audrii.utilities.main import get_api_keys
+from audrii.pipelines.ingestion.scraper.api_wrapper import DataProducer
+from audrii.pipelines.ingestion.scraper.polygon_io import get_historical_data
 
 
 def get_russell_3000_tickers(df: pd.DataFrame) -> List[str]:
