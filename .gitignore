@@ -9,6 +9,7 @@ conf/local/**
 */Untitled.ipynb
 *.csv
 *Untitled.ipynb
+*.ipynb
 
 # ignore potentially sensitive credentials files
 conf/**/*credentials*
